@@ -1,8 +1,6 @@
 import request from 'request';
 
-// type setResult = (param: string) => void;
-
-export const get = async (id: string, prodNum: string[]): Promise<string[]> => {
+export const get = async (id: string, prodNum: string[]): Promise<string[][]> => {
     const results = [];
     for (let i = 0; i < prodNum.length; i++) {
         const r = await fetch(id, prodNum[i]);
@@ -11,7 +9,7 @@ export const get = async (id: string, prodNum: string[]): Promise<string[]> => {
     return results;
 };
 
-const fetch = (id: string, prodNum: string): Promise<string> => {
+const fetch = (id: string, prodNum: string): Promise<string[]> => {
     const uri = `https://m.smartstore.naver.com/${id}/products/${prodNum}`;
     const options = {
         headers: {
@@ -26,7 +24,7 @@ const fetch = (id: string, prodNum: string): Promise<string> => {
                 str = str.replace(/<[\w\-"/\s_!=:%]+>/g, '');
                 const array = [...str.match(/\d+일 이[내|상]\d+건/g)];
                 const result = array.map((v) => v.split(' ')[1].slice(2, -1));
-                resolve([prodNum, ...result, result.reduce((a, b) => parseInt(a) + parseInt(b), 0).toString(), uri].join(','));
+                resolve([prodNum, ...result, result.reduce((a, b) => parseInt(a) + parseInt(b), 0).toString(), uri]);
             }
         });
     });
