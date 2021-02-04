@@ -1,33 +1,41 @@
-import React, { useState, useCallback } from 'react';
-import { CSVDownBtn, Input, SearchBtn, Table, TextArea } from '../components';
+import React, { useCallback, useContext } from 'react';
+import { CSVDownBtn, DeleteBtn, Input, SearchBtn, Table, TextArea } from '../components';
 import { getDelivery } from '../services/service';
 import moment from 'moment';
 import { shell } from 'electron';
-import { saveCSVFile } from '../services/remote';
+import { saveCSVFile, showMessageBox } from '../services/remote';
+import { AppDispatch, AppStore } from '../App';
+import { setDeliveryData, setDeliveryId, setDeliveryProdNo } from '../reducers/delivery';
 
-const Delivery: React.FunctionComponent = () => {
-    const [id, setId] = useState<string>('');
-    const [prodNo, setProdNo] = useState<string[]>([]);
-    const [response, setResponse] = useState<string[][]>([]);
+const Delivery = () => {
+    const dispatch = useContext(AppDispatch);
+    const { delivery: state } = useContext(AppStore);
+    const { id, prodNo, data } = state;
     const headers = ['상품번호', '1일 이내', '2일 이내', '3일 이내', '4일 이상', '합계', '상품페이지'];
 
     const handleIdChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        setId(e.target.value);
+        dispatch(setDeliveryId(e.target.value));
     }, []);
     const handleProdNoChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        setProdNo(e.target.value.replaceAll(' ', '\n').split('\n'));
+        dispatch(setDeliveryProdNo(e.target.value.replaceAll(' ', '\n').split('\n')));
     }, []);
-    const handleClick = useCallback(async () => {
-        setResponse(await getDelivery(id, prodNo));
-    }, [id, prodNo, response]);
+    const handleClick = useCallback(() => {
+        if (id && prodNo.length > 0) {
+            getDelivery(state, dispatch);
+        } else {
+            showMessageBox({ type: 'warning', message: '판매자 ID와 상품번호를 입력하세요' });
+        }
+    }, [state]);
     const handleCSVdownClick = useCallback(() => {
         const res: string[] = [headers.join(',')];
-        response.forEach((v) => {
+        data.forEach((v) => {
             res.push(v.join(','));
         });
         saveCSVFile(`${moment().format('YYMMDD')}_${id}.csv`, res.join('\n'));
-    }, [response]);
-
+    }, [data]);
+    const handleRemove = useCallback(() => {
+        dispatch(setDeliveryData([]));
+    }, []);
     return (
         <>
             <div className="flex flex-col border border-gray-300 border-solid p-4 shadow-lg">
@@ -35,11 +43,12 @@ const Delivery: React.FunctionComponent = () => {
                 <TextArea placeholder="상품번호" value={prodNo.join('\n')} onChange={handleProdNoChange} />
                 <SearchBtn onClick={handleClick} />
             </div>
-            {response.length > 0 && (
-                <>
-                    <CSVDownBtn handleClick={handleCSVdownClick} />
-                    <Table headers={headers}>{<Rows data={response} />}</Table>
-                </>
+            {data.length > 0 && (
+                <div className="py-8">
+                    <DeleteBtn onClick={handleRemove} className="mb-2" />
+                    <CSVDownBtn onClick={handleCSVdownClick} />
+                    <Table headers={headers}>{<Rows data={data} />}</Table>
+                </div>
             )}
         </>
     );

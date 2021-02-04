@@ -1,58 +1,48 @@
-import React, { useCallback, useEffect, useState, useRef } from 'react';
+import React, { useCallback, useRef, useContext, useEffect, useState } from 'react';
 import moment from 'moment';
-import { CSVDownBtn, Input, SearchBtn, Table, TextArea } from '../components';
-import { getKeyword, getAdditionalInfo } from '../services/service';
-import { saveCSVFile } from '../services/remote';
+import { CSVDownBtn, DeleteBtn, Input, SearchBtn, Table, TextArea } from '../components';
+import { getKeyword } from '../services/service';
+import { saveCSVFile, showMessageBox } from '../services/remote';
+import { AppDispatch, AppStore } from '../App';
+import {
+    KeywordData,
+    setKeywordData,
+    setKeywordMobileFilter,
+    setKeywordPcFilter,
+    setKeywordPw,
+    setKeywordWords,
+    setKeywrodId,
+} from '../reducers';
 
-export interface KeywordData {
-    relKeyword: string;
-    monthlyPcQcCnt: number | string;
-    monthlyMobileQcCnt: number | string;
-    monthlyAvePcClkCnt: number | string;
-    monthlyAveMobileClkCnt: number | string;
-    monthlyAvePcCtr: number | string;
-    monthlyAveMobileCtr: number | string;
-    plAvgDepth: number | string;
-    compIdx: string;
-    isSword: boolean;
-    sCount: string;
-    category: string;
-}
-
-const Keyword: React.FunctionComponent = () => {
-    const [id, setId] = useState<string>('');
-    const [pw, setPw] = useState<string>('');
-    const [keyword, setKeyword] = useState<string[]>([]);
-    const [data, setData] = useState<KeywordData[]>([]);
-    const [pcFilter, setPcFilter] = useState<number>(0);
-    const [mobileFilter, setMobileFilter] = useState<number>(0);
+const Keyword = () => {
+    const dispatch = useContext(AppDispatch);
+    const { keyword: state } = useContext(AppStore);
+    const { id, pw, pcFilter, mobileFilter, words, data } = state;
     const tEl = useRef<HTMLTableElement>(null);
+    const [timeoutList, setTimeoutList] = useState<number[]>([]);
 
     const handleIdChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        setId(e.target.value);
+        dispatch(setKeywrodId(e.target.value));
     }, []);
     const handlePwChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        setPw(e.target.value);
+        dispatch(setKeywordPw(e.target.value));
     }, []);
-    const handleKeyWordChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        setKeyword(e.target.value.replaceAll(' ', '\n').split('\n'));
+    const handleWordChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        dispatch(setKeywordWords(e.target.value.replaceAll(' ', '\n').split('\n').slice(0, 5)));
     }, []);
     const handlePcFilterChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        setPcFilter(parseInt(e.target.value));
+        dispatch(setKeywordPcFilter(parseInt(e.target.value)));
     }, []);
     const handleMobileFilterChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        setMobileFilter(parseInt(e.target.value));
+        dispatch(setKeywordMobileFilter(parseInt(e.target.value)));
     }, []);
-    const handleClick = useCallback(async () => {
-        setData([]);
-        const tmp = await getKeyword(id, pw, keyword);
-        const res = tmp.filter((v) => {
-            const pcCnt = typeof v.monthlyPcQcCnt === 'string' ? 1 : v.monthlyPcQcCnt;
-            const mobileCnt = typeof v.monthlyMobileQcCnt === 'string' ? 1 : v.monthlyMobileQcCnt;
-            return pcCnt >= pcFilter && mobileCnt >= mobileFilter;
-        });
-        setData(res);
-    }, [id, pw, keyword, pcFilter, mobileFilter]);
+    const handleClick = useCallback(() => {
+        if (id && pw && words.length > 0) {
+            getKeyword(state, dispatch).then((v) => setTimeoutList(v));
+        } else {
+            showMessageBox({ type: 'warning', message: '네이버 ID, 네이버 PW, 키워드를 입력하세요' });
+        }
+    }, [state]);
     const handleCSVdownClick = useCallback(() => {
         const res: string[] = [];
         if (tEl.current) {
@@ -70,9 +60,14 @@ const Keyword: React.FunctionComponent = () => {
                     res.push(tr.join(','));
                 });
             });
-            saveCSVFile(`${moment().format('YYMMDD')}_${keyword.join('-')}.csv`, res.join('\n'));
+            saveCSVFile(`${moment().format('YYMMDD')}_${words.join('-')}.csv`, res.join('\n'));
         }
-    }, [keyword]);
+    }, [words]);
+    const handleRemove = useCallback(() => {
+        timeoutList.forEach((v) => window.clearTimeout(v));
+        setTimeoutList([]);
+        dispatch(setKeywordData([]));
+    }, [timeoutList]);
 
     const headers = ['키워드', '월간 검색수(PC)', '월간 검색수(모바일)', '상품 키워드', '검색 상품수', '카테고리'];
     return (
@@ -86,7 +81,7 @@ const Keyword: React.FunctionComponent = () => {
                         <Input type="password" placeholder="네이버 PW" value={pw} onChange={handlePwChange} />
                     </div>
                 </div>
-                <TextArea placeholder="키워드 입력(최대 5개)" value={keyword.join('\n')} onChange={handleKeyWordChange} />
+                <TextArea placeholder="키워드 입력(최대 5개)" value={words.join('\n')} onChange={handleWordChange} />
                 <div className="pb-4">
                     <div>월간 검색수(PC) : {pcFilter}</div>
                     <input onChange={handlePcFilterChange} className="w-full" type="range" min="0" max="10000" step="10" value={pcFilter} />
@@ -106,18 +101,13 @@ const Keyword: React.FunctionComponent = () => {
                 <SearchBtn onClick={handleClick} />
             </div>
             {data.length > 0 && (
-                <>
-                    <CSVDownBtn handleClick={handleCSVdownClick} />
-                    <div className="py-3">
-                        처리종료 예상 시각{' '}
-                        {moment()
-                            .add(data.length + 1, 's')
-                            .format('YYYY-MM-DD hh:mm:ss')}
-                    </div>
+                <div className="py-8">
+                    <DeleteBtn onClick={handleRemove} className="mb-2" />
+                    <CSVDownBtn onClick={handleCSVdownClick} />
                     <Table elementRef={tEl} headers={headers}>
                         <Rows data={data} />
                     </Table>
-                </>
+                </div>
             )}
         </>
     );
@@ -125,26 +115,14 @@ const Keyword: React.FunctionComponent = () => {
 
 const Rows = ({ data }: { data: KeywordData[] }) => {
     const rows = data.map((v, i) => {
-        const [rowData, setRowData] = useState<KeywordData>(v);
-
-        useEffect(() => {
-            const t = setTimeout(async () => {
-                const tmp = await getAdditionalInfo(v.relKeyword);
-                setRowData({ ...rowData, ...tmp });
-            }, i * 1000);
-            return () => {
-                clearTimeout(t);
-            };
-        }, []);
-
         return (
             <tr key={i} className="hover:bg-gray-100 border-b border-gray-200 py-10">
-                <td className="px-4 py-4">{rowData.relKeyword}</td>
-                <td className="px-4 py-4">{rowData.monthlyPcQcCnt}</td>
-                <td className="px-4 py-4">{rowData.monthlyMobileQcCnt}</td>
-                <td className="px-4 py-4">{rowData.isSword ? 'O' : 'X'}</td>
-                <td className="px-4 py-4">{rowData.sCount}</td>
-                <td className="px-4 py-4">{rowData.category}</td>
+                <td className="px-4 py-4">{v.relKeyword}</td>
+                <td className="px-4 py-4">{v.monthlyPcQcCnt}</td>
+                <td className="px-4 py-4">{v.monthlyMobileQcCnt}</td>
+                <td className="px-4 py-4">{v.isSword ? 'O' : 'X'}</td>
+                <td className="px-4 py-4">{v.sCount}</td>
+                <td className="px-4 py-4">{v.category}</td>
             </tr>
         );
     });

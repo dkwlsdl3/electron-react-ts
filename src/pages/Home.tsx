@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Home: React.FunctionComponent = () => {
+const Home = () => {
     return (
         <>
             <h1>홈</h1>

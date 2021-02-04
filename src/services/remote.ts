@@ -2,23 +2,23 @@ import { remote } from 'electron';
 import fs from 'fs';
 const { dialog } = remote;
 
-export const closeCurrentWindow = (): void => {
+export function closeCurrentWindow() {
     remote.getCurrentWindow().close();
-};
+}
 
-export const minimizeCurrentWindow = (): void => {
+export function minimizeCurrentWindow() {
     remote.getCurrentWindow().minimize();
-};
+}
 
-export const maximizeCurrentWindow = (): void => {
+export function maximizeCurrentWindow() {
     remote.getCurrentWindow().maximize();
-};
+}
 
-export const unmaximizeCurrentWindow = (): void => {
+export function unmaximizeCurrentWindow() {
     remote.getCurrentWindow().unmaximize();
-};
+}
 
-export const saveCSVFile = (fileName: string, data: string): void => {
+export function saveCSVFile(fileName: string, data: string) {
     const options = {
         defaultPath: fileName,
         filters: [
@@ -37,7 +37,7 @@ export const saveCSVFile = (fileName: string, data: string): void => {
             return;
         }
 
-        fs.writeFile(v.filePath, data, (err) => {
+        fs.writeFile(v.filePath, '\ufeff' + data, (err) => {
             if (err) {
                 dialog.showMessageBox(remote.getCurrentWindow(), {
                     type: 'error',
@@ -47,4 +47,8 @@ export const saveCSVFile = (fileName: string, data: string): void => {
             dialog.showMessageBox(remote.getCurrentWindow(), { type: 'info', message: '파일이 저장 되었습니다.' });
         });
     });
-};
+}
+
+export function showMessageBox(options: Electron.MessageBoxOptions) {
+    dialog.showMessageBox(remote.getCurrentWindow(), options);
+}
