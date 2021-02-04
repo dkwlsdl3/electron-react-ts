@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow } from 'electron';
 declare const MAIN_WINDOW_WEBPACK_ENTRY: any;
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -12,9 +12,12 @@ const createWindow = (): void => {
     const mainWindow = new BrowserWindow({
         height: 800,
         width: 1200,
+        minWidth: 800,
+        minHeight: 600,
         frame: false,
         webPreferences: {
             nodeIntegration: true,
+            enableRemoteModule: true,
         },
     });
 
@@ -51,23 +54,3 @@ app.on('activate', () => {
 // code. You can also put them in separate files and import them here.
 
 // In the Main process
-ipcMain.handle('window-close', () => {
-    // ... do actions on behalf of the Renderer
-    const win = BrowserWindow.getFocusedWindow();
-    win?.close();
-});
-
-ipcMain.handle('window-minimize', () => {
-    const win = BrowserWindow.getFocusedWindow();
-    win?.minimize();
-});
-
-ipcMain.handle('window-maximize', () => {
-    const win = BrowserWindow.getFocusedWindow();
-    win?.maximize();
-});
-
-ipcMain.handle('window-unmaximize', () => {
-    const win = BrowserWindow.getFocusedWindow();
-    win?.unmaximize();
-});
