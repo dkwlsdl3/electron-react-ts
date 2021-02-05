@@ -2,7 +2,7 @@ import React, { useCallback, useRef, useContext, useEffect, useState } from 'rea
 import moment from 'moment';
 import { CSVDownBtn, DeleteBtn, Input, SearchBtn, Table, TextArea } from '../components';
 import { getKeyword } from '../services/service';
-import { saveCSVFile, showMessageBox } from '../services/remote';
+import { saveCSVFile, saveExcelFile, showMessageBox } from '../services/remote';
 import { AppDispatch, AppStore } from '../App';
 import {
     KeywordData,
@@ -13,6 +13,7 @@ import {
     setKeywordWords,
     setKeywrodId,
 } from '../reducers';
+import ExcelDownBtn from '../components/ExcelDownBtn';
 
 const Keyword = () => {
     const dispatch = useContext(AppDispatch);
@@ -63,6 +64,26 @@ const Keyword = () => {
             saveCSVFile(`${moment().format('YYMMDD')}_${words.join('-')}.csv`, res.join('\n'));
         }
     }, [words]);
+    const handleExceldownClick = useCallback(() => {
+        const res: string[][] = [];
+        if (tEl.current) {
+            tEl.current.childNodes.forEach((v1) => {
+                // v1 -> thead, tbody
+                v1.childNodes.forEach((v2) => {
+                    // v2 -> tr
+                    const tr: string[] = [];
+                    v2.childNodes.forEach((v3) => {
+                        // v3 -> th, td
+                        if (v3.textContent) {
+                            tr.push(v3.textContent);
+                        }
+                    });
+                    res.push(tr);
+                });
+            });
+            saveExcelFile(`${moment().format('YYMMDD')}_${words.join('-')}.xlsx`, res);
+        }
+    }, [words]);
     const handleRemove = useCallback(() => {
         timeoutList.forEach((v) => window.clearTimeout(v));
         setTimeoutList([]);
@@ -103,6 +124,7 @@ const Keyword = () => {
             {data.length > 0 && (
                 <div className="py-8">
                     <DeleteBtn onClick={handleRemove} className="mb-2" />
+                    <ExcelDownBtn onClick={handleExceldownClick} className="right-28" />
                     <CSVDownBtn onClick={handleCSVdownClick} />
                     <Table elementRef={tEl} headers={headers}>
                         <Rows data={data} />

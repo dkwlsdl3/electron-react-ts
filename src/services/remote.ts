@@ -1,5 +1,7 @@
 import { remote } from 'electron';
 import fs from 'fs';
+import * as Excel from 'exceljs';
+import { saveAs } from 'file-saver';
 const { dialog } = remote;
 
 export function closeCurrentWindow() {
@@ -51,4 +53,22 @@ export function saveCSVFile(fileName: string, data: string) {
 
 export function showMessageBox(options: Electron.MessageBoxOptions) {
     dialog.showMessageBox(remote.getCurrentWindow(), options);
+}
+
+export function saveExcelFile(fileName: string, data: any[][]) {
+    const workbook = new Excel.Workbook();
+    const worksheet = workbook.addWorksheet('Sheet1');
+    data.forEach((v) => worksheet.addRow(v));
+    workbook.xlsx
+        .writeBuffer()
+        .then((buffer) => {
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            saveAs(blob, fileName);
+        })
+        .catch(() => {
+            dialog.showMessageBox(remote.getCurrentWindow(), {
+                type: 'error',
+                message: 'An error ocurred creating the file',
+            });
+        });
 }

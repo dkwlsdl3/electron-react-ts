@@ -137,7 +137,7 @@ function getSwordCount(key: string) {
                     let sCount = '-';
                     const match = text.match(/쇼핑더보기<emclass="total_num_text">\(([\d,]*)\)/);
                     if (isSword && match && match.length > 0) {
-                        sCount = match[1];
+                        sCount = match[1].replace(/,/g, '');
                     }
                     resolve([isSword, sCount]);
                 } else if (err) {

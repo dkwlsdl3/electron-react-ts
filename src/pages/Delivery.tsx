@@ -3,9 +3,10 @@ import { CSVDownBtn, DeleteBtn, Input, SearchBtn, Table, TextArea } from '../com
 import { getDelivery } from '../services/service';
 import moment from 'moment';
 import { shell } from 'electron';
-import { saveCSVFile, showMessageBox } from '../services/remote';
+import { saveCSVFile, saveExcelFile, showMessageBox } from '../services/remote';
 import { AppDispatch, AppStore } from '../App';
 import { setDeliveryData, setDeliveryId, setDeliveryProdNo } from '../reducers/delivery';
+import ExcelDownBtn from '../components/ExcelDownBtn';
 
 const Delivery = () => {
     const dispatch = useContext(AppDispatch);
@@ -33,6 +34,9 @@ const Delivery = () => {
         });
         saveCSVFile(`${moment().format('YYMMDD')}_${id}.csv`, res.join('\n'));
     }, [data]);
+    const handleExceldownClick = useCallback(() => {
+        saveExcelFile(`${moment().format('YYMMDD')}_${id}.xlsx`, [headers, ...data]);
+    }, [data]);
     const handleRemove = useCallback(() => {
         dispatch(setDeliveryData([]));
     }, []);
@@ -46,6 +50,7 @@ const Delivery = () => {
             {data.length > 0 && (
                 <div className="py-8">
                     <DeleteBtn onClick={handleRemove} className="mb-2" />
+                    <ExcelDownBtn onClick={handleExceldownClick} className="right-28" />
                     <CSVDownBtn onClick={handleCSVdownClick} />
                     <Table headers={headers}>{<Rows data={data} />}</Table>
                 </div>
