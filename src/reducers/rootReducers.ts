@@ -4,7 +4,7 @@ import { keywordInitialState, keywordReducer } from './keyword';
 function combineReducers(reducers: any) {
     return (state: any = {}, action: any) => {
         const newState: any = {};
-        for (let key in reducers) {
+        for (const key in reducers) {
             newState[key] = reducers[key](state[key], action);
         }
         return newState;

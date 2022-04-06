@@ -197,7 +197,7 @@ function getCategory(key: string) {
                     const tags = doc.querySelectorAll('li.basicList_item__2XT81 div.basicList_depth__2QIie');
                     const childNodes = tags.length > 0 ? tags[0].childNodes : [];
                     childNodes.forEach((v: any) => {
-                        category.push(v.text);
+                        category.push(v.textContent);
                     });
                     res = category.join('>');
                     resolve(res);

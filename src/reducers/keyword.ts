@@ -1,5 +1,4 @@
-import { stat } from 'fs';
-
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 export interface KeywordData {
     relKeyword: string;
     monthlyPcQcCnt: number | string;
@@ -107,47 +106,55 @@ export function setKeywordAdditionalData(index: number, additionalData: { isSwor
 
 export function keywordReducer(state: KeywordState, action: any): KeywordState {
     switch (action.type) {
-        case SET_KEYWORD_ID:
+        case SET_KEYWORD_ID: {
             return {
                 ...state,
                 id: action.id,
             };
-        case SET_KEYWORD_PW:
+        }
+        case SET_KEYWORD_PW: {
             return {
                 ...state,
                 pw: action.pw,
             };
-        case SET_KEYWORD_PC_FILTER:
+        }
+        case SET_KEYWORD_PC_FILTER: {
             return {
                 ...state,
                 pcFilter: action.pcFilter,
             };
-        case SET_KEYWORD_MOBILE_FILTER:
+        }
+        case SET_KEYWORD_MOBILE_FILTER: {
             return {
                 ...state,
                 mobileFilter: action.mobileFilter,
             };
-        case SET_KEYWORD_WORDS:
+        }
+        case SET_KEYWORD_WORDS: {
             return {
                 ...state,
                 words: action.words,
             };
-        case SET_KEYWORD_DATA:
+        }
+        case SET_KEYWORD_DATA: {
             return {
                 ...state,
                 data: action.data,
             };
-        case PUSH_KEYWORD_DATA:
+        }
+        case PUSH_KEYWORD_DATA: {
             return {
                 ...state,
                 data: [...state.data, action.data],
             };
-        case BULK_PUSH_KEYWORD_DATA:
+        }
+        case BULK_PUSH_KEYWORD_DATA: {
             return {
                 ...state,
                 data: [...state.data, ...action.data],
             };
-        case SET_KEYWORD_ADDITIONAL_DATA:
+        }
+        case SET_KEYWORD_ADDITIONAL_DATA: {
             if (state.data.length <= 0) {
                 return state;
             }
@@ -157,6 +164,7 @@ export function keywordReducer(state: KeywordState, action: any): KeywordState {
                 ...state,
                 data: newData,
             };
+        }
         default:
             return state;
     }

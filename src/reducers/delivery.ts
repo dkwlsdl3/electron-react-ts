@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 export interface DeliveryState {
     id: string;
     prodNo: string[];
@@ -43,26 +44,30 @@ export function pushDeliveryData(data: string[]) {
 
 export function deliveryReducer(state: DeliveryState, action: any) {
     switch (action.type) {
-        case SET_DELIVERY_ID:
+        case SET_DELIVERY_ID: {
             return {
                 ...state,
                 id: action.id,
             };
-        case SET_DELIVERY_PROD_NO:
+        }
+        case SET_DELIVERY_PROD_NO: {
             return {
                 ...state,
                 prodNo: action.prodNo,
             };
-        case SET_DELIVERY_DATA:
+        }
+        case SET_DELIVERY_DATA: {
             return {
                 ...state,
                 data: action.data,
             };
-        case PUSH_DELIVERY_DATA:
+        }
+        case PUSH_DELIVERY_DATA: {
             return {
                 ...state,
                 data: [...state.data, action.data],
             };
+        }
         default:
             return state;
     }
