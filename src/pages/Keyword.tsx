@@ -15,7 +15,7 @@ import {
 } from '../reducers';
 import ExcelDownBtn from '../components/ExcelDownBtn';
 
-const Keyword = () => {
+const Keyword: React.FunctionComponent = () => {
     const dispatch = useContext(AppDispatch);
     const { keyword: state } = useContext(AppStore);
     const { id, pw, pcFilter, mobileFilter, words, data } = state;

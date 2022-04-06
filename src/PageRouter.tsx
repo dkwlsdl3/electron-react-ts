@@ -4,7 +4,7 @@ import { Layout } from './layouts';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import { Home, Delivery, Keyword } from './pages';
 
-const PageRouter = () => {
+const PageRouter: React.FunctionComponent = () => {
     return (
         <BrowserRouter>
             <Layout>

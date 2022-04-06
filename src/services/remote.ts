@@ -4,23 +4,23 @@ import * as Excel from 'exceljs';
 import { saveAs } from 'file-saver';
 const { dialog } = remote;
 
-export function closeCurrentWindow() {
+export function closeCurrentWindow(): void {
     remote.getCurrentWindow().close();
 }
 
-export function minimizeCurrentWindow() {
+export function minimizeCurrentWindow(): void {
     remote.getCurrentWindow().minimize();
 }
 
-export function maximizeCurrentWindow() {
+export function maximizeCurrentWindow(): void {
     remote.getCurrentWindow().maximize();
 }
 
-export function unmaximizeCurrentWindow() {
+export function unmaximizeCurrentWindow(): void {
     remote.getCurrentWindow().unmaximize();
 }
 
-export function saveCSVFile(fileName: string, data: string) {
+export function saveCSVFile(fileName: string, data: string): void {
     const options = {
         defaultPath: fileName,
         filters: [
@@ -51,11 +51,11 @@ export function saveCSVFile(fileName: string, data: string) {
     });
 }
 
-export function showMessageBox(options: Electron.MessageBoxOptions) {
+export function showMessageBox(options: Electron.MessageBoxOptions): void {
     dialog.showMessageBox(remote.getCurrentWindow(), options);
 }
 
-export function saveExcelFile(fileName: string, data: any[][]) {
+export function saveExcelFile(fileName: string, data: any[][]): void {
     const workbook = new Excel.Workbook();
     const worksheet = workbook.addWorksheet('Sheet1');
     data.forEach((v) => worksheet.addRow(v));

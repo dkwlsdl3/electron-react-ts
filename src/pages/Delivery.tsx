@@ -8,11 +8,11 @@ import { AppDispatch, AppStore } from '../App';
 import { setDeliveryData, setDeliveryId, setDeliveryProdNo } from '../reducers/delivery';
 import ExcelDownBtn from '../components/ExcelDownBtn';
 
-const Delivery = () => {
+const Delivery: React.FunctionComponent = () => {
     const dispatch = useContext(AppDispatch);
     const { delivery: state } = useContext(AppStore);
     const { id, prodNo, data } = state;
-    const headers = ['상품번호', '1일 이내', '2일 이내', '3일 이내', '4일 이상', '합계', '상품페이지'];
+    const headers = ['상품번호', '상품명', '1일 이내', '2일 이내', '3일 이내', '4일 이상', '합계', '가격', '총 판매금액', '상품페이지'];
 
     const handleIdChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         dispatch(setDeliveryId(e.target.value));
