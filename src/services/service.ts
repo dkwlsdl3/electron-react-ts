@@ -2,13 +2,13 @@ import request from 'request';
 import { bulkPushKeywordData, DeliveryState, KeywordData, KeywordState, pushDeliveryData, setKeywordAdditionalData } from '../reducers';
 import { showMessageBox } from './remote';
 
-export async function getDelivery(state: DeliveryState, dispatch: React.Dispatch<any>) {
-    for (let prodNo of state.prodNo) {
+export async function getDelivery(state: DeliveryState, dispatch: React.Dispatch<any>): Promise<void> {
+    for (const prodNo of state.prodNo) {
         try {
             const result = await getNumberOfDeliveies(state.id, prodNo);
             dispatch(pushDeliveryData(result));
         } catch (e) {
-            showMessageBox({ type: 'error', message: e });
+            showMessageBox({ type: 'error', message: String(e) });
         }
     }
 }
@@ -25,11 +25,40 @@ function getNumberOfDeliveies(id: string, prodNo: string) {
     return new Promise<string[]>((resolve, reject) => {
         request.get(uri, options, (err, response, body) => {
             if (!err && response.statusCode === 200) {
-                let str = body.match(/평균.*의 배송기간/g)[0];
-                str = str.replace(/<[\w\-"/\s_!=:%]+>/g, '');
-                const array = [...str.match(/\d+일 이[내|상]\d+건/g)];
-                const result = array.map((v) => v.split(' ')[1].slice(2, -1));
-                resolve([prodNo, ...result, result.reduce((a, b) => parseInt(a) + parseInt(b), 0).toString(), uri]);
+                let result: any[] = [];
+                if (!body.match(/평균.*의 배송기간/g)) {
+                    result = ['0', '0', '0', '0'];
+                } else {
+                    const qnty = body // 배송 건수
+                        .match(/평균.*의 배송기간/g)[0]
+                        .replace(/<[\w\-"/\s_!=:%]+>/g, '')
+                        .match(/\d+일 이[내|상]\d+건/g);
+                    while (qnty.length < 4) {
+                        qnty.unshift('3일 이내0건');
+                    }
+                    result = [...qnty].map((v) => v.split(' ')[1].slice(2, -1));
+                }
+                const value = body // 상품 가격
+                    .match(/상품 가격.*고객을 위한/g)[0]
+                    .replace(/<[\w\-"/\s_!=:%]+>/g, '')
+                    .replace(/\W/g, '');
+                const product_name = body // 상품 이름
+                    .match(/스토어찜하기.*건 리뷰 더보기/g)[0]
+                    .replace(/<[\w\-"/\s_!=:%]+>/g, '')
+                    .replace(/<.+>/g, '')
+                    .replace(/스토어찜하기/g, '')
+                    .replace(/(BEST)?(평점)?[\d,]+건 리뷰 더보기/g, '');
+                const sum = result.reduce((a, b) => parseInt(a) + parseInt(b), 0);
+                const total = parseInt(value) * sum;
+                resolve([
+                    prodNo,
+                    product_name,
+                    ...result,
+                    sum.toString(),
+                    value.replace(/\B(?=(\d{3})+(?!\d))/g, ','),
+                    total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','),
+                    uri,
+                ]);
             } else if (err) {
                 reject(err);
             } else {
@@ -39,7 +68,7 @@ function getNumberOfDeliveies(id: string, prodNo: string) {
     });
 }
 
-export async function getKeyword(state: KeywordState, dispatch: React.Dispatch<any>) {
+export async function getKeyword(state: KeywordState, dispatch: React.Dispatch<any>): Promise<number[]> {
     let timeoutList: number[] = [];
     try {
         const key = encodeURIComponent(state.words.join(','));
@@ -60,7 +89,7 @@ export async function getKeyword(state: KeywordState, dispatch: React.Dispatch<a
             timeoutList.push(timeoutId);
         });
     } catch (e) {
-        showMessageBox({ type: 'error', message: e });
+        showMessageBox({ type: 'error', message: String(e) });
         timeoutList.forEach((v) => window.clearTimeout(v));
         timeoutList = [];
     }
@@ -107,7 +136,7 @@ function getKeywordData(key: string, token: string) {
     });
 }
 
-export async function getKeywordAdditionalInfo(key: string, index: number, dispatch: React.Dispatch<any>) {
+export async function getKeywordAdditionalInfo(key: string, index: number, dispatch: React.Dispatch<any>): Promise<void> {
     const encodedKey = encodeURIComponent(key);
     let isSword = false,
         sCount = '-',
@@ -159,12 +188,12 @@ function getCategory(key: string) {
                 const category: Array<string> = [];
                 let res = '-';
                 if (!err && response.statusCode === 200) {
-                    let dp = new window.DOMParser();
+                    const dp = new window.DOMParser();
                     const re = /<li class="basicList_item__2XT81">.*<\/li>/;
                     const sBody = body.slice(0, body.length / 5);
                     const match = sBody.match(re);
                     const m = match && match.length > 0 ? match[0] : '<div></div>';
-                    let doc = dp.parseFromString(m, 'text/html');
+                    const doc = dp.parseFromString(m, 'text/html');
                     const tags = doc.querySelectorAll('li.basicList_item__2XT81 div.basicList_depth__2QIie');
                     const childNodes = tags.length > 0 ? tags[0].childNodes : [];
                     childNodes.forEach((v: any) => {
