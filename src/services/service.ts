@@ -39,7 +39,7 @@ function getNumberOfDeliveies(id: string, prodNo: string) {
                     result = [...qnty].map((v) => v.split(' ')[1].slice(2, -1));
                 }
                 const value = body // 상품 가격
-                    .match(/상품 가격.*고객을 위한/g)[0]
+                    .match(/상품 가격.*<span class="roADTmiskI">원<\/span>/g)[0]
                     .replace(/<[\w\-"/\s_!=:%]+>/g, '')
                     .replace(/\W/g, '');
                 const product_name = body // 상품 이름
