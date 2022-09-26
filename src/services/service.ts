@@ -43,11 +43,11 @@ function getNumberOfDeliveies(id: string, prodNo: string) {
                     .replace(/<[\w\-"/\s_!=:%]+>/g, '')
                     .replace(/\W/g, '');
                 const product_name = body // 상품 이름
-                    .match(/스토어찜하기.*건 리뷰 더보기/g)[0]
+                    .match(/스토어찜하기.*건 리뷰/g)[0]
                     .replace(/<[\w\-"/\s_!=:%]+>/g, '')
                     .replace(/<.+>/g, '')
                     .replace(/스토어찜하기/g, '')
-                    .replace(/(BEST)?(평점)?[\d,]+건 리뷰 더보기/g, '');
+                    .replace(/(BEST)?(평점)?[\d,]+건 리뷰/g, '');
                 const sum = result.reduce((a, b) => parseInt(a) + parseInt(b), 0);
                 const total = parseInt(value) * sum;
                 resolve([
@@ -159,12 +159,12 @@ export async function getKeywordAdditionalInfo(key: string, index: number, dispa
 function getSwordCount(key: string) {
     return new Promise<[boolean, string]>((resolve, reject) => {
         try {
-            request.get(`https://search.naver.com/search.naver?query=${key}`, (err, response, body) => {
+            request.get(`https://m.search.naver.com/search.naver?query=${key}`, (err, response, body) => {
                 if (!err && response.statusCode === 200) {
                     const text = body.replace(/ /gi, '').replace(/\n/gi, '').replace(/\t/gi, '');
                     const isSword = text.match(/네이버쇼핑/g)?.length > 0;
                     let sCount = '-';
-                    const match = text.match(/쇼핑더보기<emclass="total_num_text">\(([\d,]*)\)/);
+                    const match = text.match(/쇼핑더보기<emclass="total_num_count">\(([\d,]*)건\)/);
                     if (isSword && match && match.length > 0) {
                         sCount = match[1].replace(/,/g, '');
                     }
@@ -189,12 +189,11 @@ function getCategory(key: string) {
                 let res = '-';
                 if (!err && response.statusCode === 200) {
                     const dp = new window.DOMParser();
-                    const re = /<li class="basicList_item__2XT81">.*<\/li>/;
-                    const sBody = body.slice(0, body.length / 5);
-                    const match = sBody.match(re);
+                    const re = /<li class="basicList_item__0T9JD">.*<\/li>/;
+                    const match = body.match(re);
                     const m = match && match.length > 0 ? match[0] : '<div></div>';
                     const doc = dp.parseFromString(m, 'text/html');
-                    const tags = doc.querySelectorAll('li.basicList_item__2XT81 div.basicList_depth__2QIie');
+                    const tags = doc.querySelectorAll('li.basicList_item__0T9JD div.basicList_depth__SbZWF');
                     const childNodes = tags.length > 0 ? tags[0].childNodes : [];
                     childNodes.forEach((v: any) => {
                         category.push(v.textContent);
